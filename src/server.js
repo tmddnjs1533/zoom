@@ -18,16 +18,36 @@ const server = http.createServer(app);
 
 const wss = new WebSocket.Server({ server });
 
+function bufferToString(value) {
+  return value.toString("utf8")
+}
+
+function parseMessage(str) {
+  return JSON.parse(str);
+}
+
 const sockets = [];
 
 wss.on("connection", (socket) => {
   console.log("Connected to Browser ");
+  socket["nickname"] = "Anonymous";
   sockets.push(socket);
   socket.on("close", () => {
     console.log("DisConnected from the Browser x");
   });
-  socket.on("message", (message) => {
-    sockets.forEach((aSocket) => aSocket.send(message.toString("utf8")));
+  socket.on("message", (req) => {
+    const message = parseMessage(bufferToString(req));
+    switch (message.type) {
+      case "message":
+      sockets.forEach((aSocket) => {
+        aSocket.send(`[${socket.nickname}] :${message.payload}`)
+      });
+        break;
+      case "nickname":
+        console.log("set nickname",message.payload)
+        socket.nickname = message.payload
+        break;
+    }
   });
 });
 

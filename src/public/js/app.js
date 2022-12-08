@@ -1,5 +1,6 @@
 const messageList = document.querySelector("ul");
-const messageForm = document.querySelector("form");
+const messageForm = document.querySelector("form#message");
+const nicknameForm = document.querySelector("form#nickname");
 const socket = new WebSocket(`ws://${window.location.host}`); // "ws://localhost:3000"
 
 socket.addEventListener("open", () => {
@@ -17,11 +18,26 @@ socket.addEventListener("close", () => {
   console.log("DisConnected from Server x");
 });
 
-function handleSubmit(event) {
+function makeMessage(type, payload) {
+  if (!type || !payload) return "";
+  return JSON.stringify({
+    type,payload
+  })
+}
+
+function handleMessageSubmit(event) {
   event.preventDefault();
   const input = messageForm.querySelector("input");
-  socket.send(input.value);
+  socket.send(makeMessage("message",input.value) );
   input.value = "";
 }
 
-messageForm.addEventListener("submit", handleSubmit);
+function handleNicknameSubmit(event) {
+  event.preventDefault();
+  const input = nicknameForm.querySelector("input");
+  socket.send(makeMessage("nickname",input.value) );
+  input.value = "";
+}
+
+messageForm.addEventListener("submit", handleMessageSubmit);
+nicknameForm.addEventListener("submit", handleNicknameSubmit);
